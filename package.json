@@ -26,6 +26,7 @@
     "firebase": "^11.9.1",
     "framer-motion": "^12.18.1",
     "lodash": "^4.17.21",
+    "lru-cache": "^11.1.0",
     "lucide-react": "^0.515.0",
     "nanoid": "^5.1.5",
     "react": "^19.1.0",
@@ -52,6 +53,7 @@
     "tw-animate-css": "^1.3.4",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "vite-plugin-pwa": "^1.0.0"
   }
 }
