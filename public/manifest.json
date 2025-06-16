@@ -4,12 +4,12 @@
   "description": "A platform for splitting group expenses",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "background_color": "#000000",
+  "theme_color": "#ffffff",
   "icons": [
     {
       "src": "/fairly-white.svg",
-      "sizes": "192x192",
+      "sizes": "144x144",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
