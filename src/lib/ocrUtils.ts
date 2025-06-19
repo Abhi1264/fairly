@@ -1,18 +1,13 @@
-import tesseract from "node-tesseract-ocr";
+import Tesseract from "tesseract.js";
 
 export async function extractTextFromImage(
   image: File | Blob
 ): Promise<string> {
-  const arrayBuffer = await image.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-  const config = {
-    lang: "eng",
-    oem: 1,
-    psm: 3,
-  };
   try {
-    const text = await tesseract.recognize(buffer, config);
-    return text;
+    const { data } = await Tesseract.recognize(image, "eng", {
+      logger: () => {}, // Optional: you can add progress logging here
+    });
+    return data.text;
   } catch (error: any) {
     throw new Error(error.message || "OCR failed");
   }
