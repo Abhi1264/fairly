@@ -65,7 +65,15 @@ interface UserData {
  * Creates a new group and adds the creator as a member
  * @returns The ID of the newly created group
  */
-export async function createGroup({ name, description, createdBy }: { name: string, description: string, createdBy: string }) {
+export async function createGroup({
+  name,
+  description,
+  createdBy,
+}: {
+  name: string;
+  description: string;
+  createdBy: string;
+}) {
   // Create group document
   const groupRef = await addDoc(collection(firestore, "groups"), {
     name,
@@ -74,7 +82,7 @@ export async function createGroup({ name, description, createdBy }: { name: stri
     members: [createdBy],
     createdAt: serverTimestamp(),
   });
-  
+
   // Add group to creator's group list
   const userRef = doc(firestore, "users", createdBy);
   await setDoc(userRef, { groups: arrayUnion(groupRef.id) }, { merge: true });
@@ -89,7 +97,7 @@ export async function getUserGroups(userId: string) {
   const userSnap = await getDoc(doc(firestore, "users", userId));
   const userData = userSnap.data();
   if (!userData?.groups) return [];
-  
+
   // Fetch full group documents
   const groupPromises = userData.groups.map((groupId: string) =>
     getDoc(doc(firestore, "groups", groupId))
@@ -101,11 +109,17 @@ export async function getUserGroups(userId: string) {
 /**
  * Adds a user to a group and updates both group and user documents
  */
-export async function joinGroup({ groupId, userId }: { groupId: string, userId: string }) {
+export async function joinGroup({
+  groupId,
+  userId,
+}: {
+  groupId: string;
+  userId: string;
+}) {
   // Add user to group's member list
   const groupRef = doc(firestore, "groups", groupId);
   await updateDoc(groupRef, { members: arrayUnion(userId) });
-  
+
   // Add group to user's group list
   const userRef = doc(firestore, "users", userId);
   await setDoc(userRef, { groups: arrayUnion(groupId) }, { merge: true });
@@ -374,9 +388,7 @@ export function calculateSplitAmounts(
   return splits;
 }
 
-export async function getGroupBalances(
-  groupId: string
-) {
+export async function getGroupBalances(groupId: string) {
   const expenses = await getGroupExpenses(groupId);
   const balances: Record<string, Record<Currency, number>> = {};
 
@@ -385,7 +397,10 @@ export async function getGroupBalances(
 
     // Initialize currency balances if not exists
     if (!balances[expense.paidBy]) {
-      balances[expense.paidBy] = { [expense.currency]: 0 } as Record<Currency, number>;
+      balances[expense.paidBy] = { [expense.currency]: 0 } as Record<
+        Currency,
+        number
+      >;
     }
     if (!balances[expense.paidBy][expense.currency]) {
       balances[expense.paidBy][expense.currency] = 0;
@@ -397,7 +412,10 @@ export async function getGroupBalances(
     // Subtract from each person's share
     Object.entries(splits).forEach(([memberId, amount]) => {
       if (!balances[memberId]) {
-        balances[memberId] = { [expense.currency]: 0 } as Record<Currency, number>;
+        balances[memberId] = { [expense.currency]: 0 } as Record<
+          Currency,
+          number
+        >;
       }
       if (!balances[memberId][expense.currency]) {
         balances[memberId][expense.currency] = 0;

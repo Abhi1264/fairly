@@ -1,6 +1,8 @@
-import tesseract from "node-tesseract-ocr"
+import tesseract from "node-tesseract-ocr";
 
-export async function extractTextFromImage(image: File | Blob): Promise<string> {
+export async function extractTextFromImage(
+  image: File | Blob
+): Promise<string> {
   const arrayBuffer = await image.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
   const config = {
@@ -14,4 +16,4 @@ export async function extractTextFromImage(image: File | Blob): Promise<string> 
   } catch (error: any) {
     throw new Error(error.message || "OCR failed");
   }
-} 
+}

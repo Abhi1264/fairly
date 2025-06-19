@@ -308,6 +308,8 @@ export function AddEditExpenseDialog({
     fileInputRef.current?.click();
   };
 
+  const [loading, setLoading] = useState<boolean>(false);
+
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -318,9 +320,13 @@ export function AddEditExpenseDialog({
       const amountMatch = text.match(/\$?([0-9]+(?:\.[0-9]{2})?)/);
       const dateMatch = text.match(/(\d{2}[\/\-]\d{2}[\/\-]\d{2,4})/);
       const merchantMatch = text.split("\n")[0];
-      if (amountMatch) setAmount(amountMatch[1]);
-      if (dateMatch) setDate(new Date(dateMatch[1]));
-      if (merchantMatch) setMerchant(merchantMatch);
+
+      setNewExpense((prev) => ({
+        ...prev,
+        amount: amountMatch ? amountMatch[1] : prev.amount,
+        date: dateMatch ? new Date(dateMatch[1]).toISOString() : prev.date,
+        description: merchantMatch ? merchantMatch : prev.description,
+      }));
     } catch (err) {
       alert("Failed to scan receipt. Please try again.");
     } finally {
@@ -552,7 +558,13 @@ export function AddEditExpenseDialog({
             ))}
           </div>
 
-          <Button onClick={handleScanReceipt} variant="outline">Scan Receipt</Button>
+          <Button
+            onClick={handleScanReceipt}
+            variant="outline"
+            disabled={loading}
+          >
+            {loading ? "Scanning..." : "Scan Receipt"}
+          </Button>
           <input
             ref={fileInputRef}
             type="file"
