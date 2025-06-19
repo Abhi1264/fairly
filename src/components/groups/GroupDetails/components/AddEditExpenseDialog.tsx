@@ -1,5 +1,5 @@
 // Import statements for React and UI components
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { TrashIcon } from "lucide-react";
 import { Button } from "../../../ui/button";
 import { Input } from "../../../ui/input";
@@ -32,6 +32,7 @@ import {
   selectUsersCache,
   isCacheValid,
 } from "../../../../lib/appSlice";
+import { extractTextFromImage } from "@/lib/ocrUtils";
 
 // Type definitions
 interface User {
@@ -80,6 +81,7 @@ export function AddEditExpenseDialog({
   const dispatch = useDispatch();
   const { data: usersCache, lastFetched: usersLastFetched } =
     useSelector(selectUsersCache);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Effect to fetch user information for group members
   useEffect(() => {
@@ -300,6 +302,30 @@ export function AddEditExpenseDialog({
       ...prev,
       items: prev.items.filter((_, i) => i !== index),
     }));
+  };
+
+  const handleScanReceipt = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLoading(true);
+    try {
+      const text = await extractTextFromImage(file);
+      // Simple parsing logic
+      const amountMatch = text.match(/\$?([0-9]+(?:\.[0-9]{2})?)/);
+      const dateMatch = text.match(/(\d{2}[\/\-]\d{2}[\/\-]\d{2,4})/);
+      const merchantMatch = text.split("\n")[0];
+      if (amountMatch) setAmount(amountMatch[1]);
+      if (dateMatch) setDate(new Date(dateMatch[1]));
+      if (merchantMatch) setMerchant(merchantMatch);
+    } catch (err) {
+      alert("Failed to scan receipt. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Render dialog component
@@ -525,6 +551,16 @@ export function AddEditExpenseDialog({
               </div>
             ))}
           </div>
+
+          <Button onClick={handleScanReceipt} variant="outline">Scan Receipt</Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            style={{ display: "none" }}
+            onChange={handleImageChange}
+          />
 
           <DialogFooter className="sticky bottom-0 bg-background pt-4">
             <Button onClick={handleSave}>
