@@ -246,7 +246,7 @@ export function DashboardPage() {
               <Skeleton className="h-6 w-32" />
             </CardHeader>
             <CardContent>
-              <Skeleton className="h-[300px]" />
+              <Skeleton className="h-40" />
             </CardContent>
           </Card>
 
@@ -361,6 +361,7 @@ export function DashboardPage() {
         </Card>
       </div>
 
+      {/* Charts and Quick Actions */}
       <div className="grid gap-8 md:grid-cols-2">
         {/* Expense trends */}
         <Card>
@@ -368,7 +369,7 @@ export function DashboardPage() {
             <CardTitle>Expense Trends</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
+            <div className="h-88">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -411,7 +412,7 @@ export function DashboardPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {data.groups.map((group: Group) => (
+            {data?.groups?.map((group: Group) => (
               <Link
                 key={group.id}
                 to={`/groups/${group.id}`}
@@ -431,7 +432,7 @@ export function DashboardPage() {
                 </div>
               </Link>
             ))}
-            {data.groups.length === 0 && (
+            {data?.groups?.length === 0 && (
               <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
                 <h3 className="mb-2 font-medium">No groups yet</h3>
                 <p className="mb-4 text-sm text-muted-foreground">

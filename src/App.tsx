@@ -6,6 +6,7 @@ import { DashboardPage } from "./components/DashboardPage";
 import { GroupList } from "./components/GroupList";
 import { GroupDetails } from "./components/groups/GroupDetails";
 import { CurrencyConverterPage } from "./components/CurrencyConverterPage";
+import { AnalyticsPage } from "./components/AnalyticsPage";
 import { Toaster } from "sonner";
 import { useSelector } from "react-redux";
 import type { RootState } from "./lib/store";
@@ -111,6 +112,14 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/analytics"
+                element={
+                  <ProtectedRoute>
+                    <AnalyticsPage />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Feature routes (coming soon) */}
               <Route
@@ -119,16 +128,6 @@ function App() {
                   <ProtectedRoute>
                     <div className="container mx-auto p-4">
                       Settings Page (Coming Soon)
-                    </div>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/analytics"
-                element={
-                  <ProtectedRoute>
-                    <div className="container mx-auto p-4">
-                      Analytics Page (Coming Soon)
                     </div>
                   </ProtectedRoute>
                 }

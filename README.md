@@ -7,12 +7,29 @@ A modern React application built with TypeScript, Vite, and a comprehensive set 
 - ⚡️ **Fast Development**: Built with [Vite](https://vitejs.dev/) for lightning-fast development and hot module replacement (HMR)
 - 🔒 **Type Safety**: Full TypeScript support with strict type checking
 - 🎨 **Modern UI Components**: 
-  - Radix UI primitives for accessible components
+  - Shadcn/UI primitives for accessible components
   - Tailwind CSS for styling
   - Framer Motion for smooth animations
   - Lucide React for beautiful icons
-- 📊 **Data Visualization**: Recharts for creating beautiful charts and graphs
-- 🔄 **State Management**: Redux Toolkit for predictable state management
+- 📊 **Expense Management**:
+  - Create and manage group expenses
+  - Multiple split methods (equal, percentage, shares, manual)
+  - Support for itemized bills with individual splits
+  - Receipt scanning with OCR for quick expense entry
+  - Multi-currency support
+- 💰 **Balance Tracking**:
+  - Real-time balance calculations
+  - Currency-wise balance tracking
+  - Smart settlement suggestions
+- 📈 **Analytics & Insights**:
+  - Interactive expense charts
+  - Spending pattern analysis
+  - Category-wise expense breakdown
+- 🔍 **Advanced Filtering**:
+  - Filter by date range
+  - Filter by amount range
+  - Filter by currency
+  - Filter by category
 - 🔥 **Backend Integration**: Firebase integration for backend services
 - 🛣️ **Routing**: React Router for client-side routing
 - 📅 **Date Handling**: Date-fns for modern date manipulation

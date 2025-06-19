@@ -397,7 +397,7 @@ export function CurrencyConverter({
                 <Select
                   onValueChange={(value: Currency) => addTargetCurrency(value)}
                 >
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-40">
                     <SelectValue placeholder="Add currency" />
                   </SelectTrigger>
                   <SelectContent>

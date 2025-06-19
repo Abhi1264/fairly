@@ -63,6 +63,13 @@ interface AppState {
       error: string | null;
       lastFetched: number | null;
     };
+    // Cache for analytics data
+    analytics: {
+      data: any[] | null;
+      loading: boolean;
+      error: string | null;
+      lastFetched: number | null;
+    };
   };
 }
 
@@ -105,6 +112,12 @@ const initialState: AppState = {
       lastFetched: null,
     },
     users: {
+      data: null,
+      loading: false,
+      error: null,
+      lastFetched: null,
+    },
+    analytics: {
       data: null,
       loading: false,
       error: null,
@@ -250,6 +263,21 @@ const appSlice = createSlice({
       state.cache.users.error = action.payload;
       state.cache.users.loading = false;
     },
+
+    // Analytics cache reducers
+    setAnalyticsLoading: (state, action: PayloadAction<boolean>) => {
+      state.cache.analytics.loading = action.payload;
+    },
+    setAnalyticsData: (state, action: PayloadAction<any[]>) => {
+      state.cache.analytics.data = action.payload;
+      state.cache.analytics.lastFetched = Date.now();
+      state.cache.analytics.error = null;
+      state.cache.analytics.loading = false;
+    },
+    setAnalyticsError: (state, action: PayloadAction<string>) => {
+      state.cache.analytics.error = action.payload;
+      state.cache.analytics.loading = false;
+    },
   },
 });
 
@@ -277,6 +305,9 @@ export const {
   setUsersLoading,
   setUsersData,
   setUsersError,
+  setAnalyticsLoading,
+  setAnalyticsData,
+  setAnalyticsError,
 } = appSlice.actions;
 
 /**
@@ -290,6 +321,7 @@ export const selectGroupDetailsCache = (state: RootState) =>
 export const selectDashboardCache = (state: RootState) =>
   state.app.cache.dashboard;
 export const selectUsersCache = (state: RootState) => state.app.cache.users;
+export const selectAnalyticsCache = (state: RootState) => state.app.cache.analytics;
 
 /**
  * Helper function to check if cached data is still valid
