@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import type { VariantProps } from "class-variance-authority";
 import { buttonVariants } from "./ui/button";
 import { FaGoogle } from "react-icons/fa";
+import { secureLog } from "../lib/utils";
 
 /**
  * Props interface for the AuthModal component
@@ -51,8 +52,8 @@ export function AuthModal({
       setDialogOpen(false);
       navigate("/dashboard"); // Redirect to dashboard after successful sign-in
     } catch (err) {
-      console.error("Error signing in with Google:", err);
-      toast.error("Error signing in with Google. Please try again.");
+      secureLog.error("Error signing in with Google", err);
+      toast.error("Failed to sign in with Google");
     } finally {
       setLoading(false);
     }

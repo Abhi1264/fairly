@@ -18,6 +18,7 @@ import { auth } from "../../lib/firebase";
 import { signOut } from "firebase/auth";
 import { clearUser } from "../../lib/appSlice";
 import { toast } from "sonner";
+import { secureLog } from "../../lib/utils";
 
 /**
  * Props interface for the Sidebar component
@@ -59,7 +60,7 @@ export function Sidebar({
       dispatch(clearUser());
       toast.success("Successfully signed out!");
     } catch (error) {
-      console.error("Error signing out:", error);
+      secureLog.error("Error signing out", error);
       toast.error("Error signing out. Please try again.");
     }
   };

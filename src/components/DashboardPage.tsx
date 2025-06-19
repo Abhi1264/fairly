@@ -31,6 +31,7 @@ import {
   setDashboardError,
   isCacheValid,
 } from "../lib/appSlice";
+import { secureLog } from "../lib/utils";
 
 // Interface definitions for core data structures
 interface Group {
@@ -66,11 +67,24 @@ export function DashboardPage() {
   const { data, loading, error, lastFetched } =
     useSelector(selectDashboardCache);
 
-  // Debug logging to help track component state changes
+  // Secure debug logging - only in development and sanitized
   useEffect(() => {
-    console.log("Dashboard state:", {
-      user: user ? { uid: user.uid, name: user.displayName } : null,
-      data,
+    secureLog.debug("Dashboard state changed", {
+      user: secureLog.sanitizeUser(user),
+      hasData: !!data,
+      dataSummary: data
+        ? {
+            groupCount: data.groups?.length || 0,
+            expenseCount: data.expenses?.length || 0,
+            hasBalances: !!data.balances,
+            totals: data.totals
+              ? {
+                  owed: data.totals.owed,
+                  owe: data.totals.owe,
+                }
+              : null,
+          }
+        : null,
       loading,
       error,
       lastFetched: lastFetched ? new Date(lastFetched).toISOString() : null,
@@ -80,17 +94,19 @@ export function DashboardPage() {
   // Main data fetching function that populates the dashboard
   const fetchData = async () => {
     if (!user) {
-      console.log("No user, skipping dashboard fetch");
+      secureLog.debug("No user, skipping dashboard fetch");
       return;
     }
 
     // Use cached data if it's still valid
     if (isCacheValid(lastFetched)) {
-      console.log("Using cached dashboard data");
+      secureLog.debug("Using cached dashboard data");
       return;
     }
 
-    console.log("Fetching dashboard data for user:", user.uid);
+    secureLog.info("Fetching dashboard data", {
+      userId: secureLog.sanitizeUser(user),
+    });
     dispatch(setDashboardLoading(true));
     try {
       // Fetch all required data in parallel for better performance
@@ -145,8 +161,14 @@ export function DashboardPage() {
           totals: { owed, owe },
         })
       );
+
+      secureLog.info("Dashboard data fetched successfully", {
+        groupCount: userGroups.length,
+        expenseCount: flattenedExpenses.length,
+        balanceCount: allBalances.length,
+      });
     } catch (error) {
-      console.error("Error fetching dashboard data:", error);
+      secureLog.error("Error fetching dashboard data", error);
       dispatch(
         setDashboardError(
           error instanceof Error

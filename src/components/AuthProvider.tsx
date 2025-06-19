@@ -8,6 +8,7 @@ import {
 } from "firebase/auth";
 import { auth } from "../lib/firebase";
 import { setUser, clearUser, setAuthLoading } from "../lib/appSlice";
+import { secureLog } from "../lib/utils";
 
 /**
  * AuthProvider component that manages authentication state
@@ -20,7 +21,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Configure Firebase auth persistence to LOCAL
     // This ensures the auth state persists across page reloads
     setPersistence(auth, browserLocalPersistence).catch((error) => {
-      console.error("Error setting auth persistence:", error);
+      secureLog.error("Error setting auth persistence", error);
     });
 
     // Indicate that auth state is being checked
@@ -28,7 +29,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Subscribe to Firebase auth state changes
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log("Auth state changed:", user ? "User logged in" : "No user");
+      secureLog.info("Auth state changed", {
+        isAuthenticated: !!user,
+        user: secureLog.sanitizeUser(user),
+      });
 
       if (user) {
         // Update Redux store with user data when logged in
@@ -51,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Cleanup: Unsubscribe from auth state changes when component unmounts
     return () => {
-      console.log("Cleaning up auth state listener");
+      secureLog.debug("Cleaning up auth state listener");
       unsubscribe();
     };
   }, [dispatch]);

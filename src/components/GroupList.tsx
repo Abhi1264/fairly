@@ -37,6 +37,7 @@ import {
 } from "../lib/appSlice";
 import { CreateGroupModal } from "./CreateGroupModal";
 import { Link } from "react-router-dom";
+import { secureLog } from "../lib/utils";
 
 // Define the Group interface
 interface Group {
@@ -67,11 +68,12 @@ export function GroupList() {
   const [inviteCode, setInviteCode] = useState("");
   const [generatingCode, setGeneratingCode] = useState(false);
 
-  // Debug logging for component state
+  // Secure debug logging for component state
   useEffect(() => {
-    console.log("GroupList state:", {
-      user: user ? { uid: user.uid, name: user.displayName } : null,
-      groups,
+    secureLog.debug("GroupList state changed", {
+      user: secureLog.sanitizeUser(user),
+      groupCount: groups?.length || 0,
+      groups: secureLog.sanitizeGroups(groups || []),
       loading,
       error,
       lastFetched: lastFetched ? new Date(lastFetched).toISOString() : null,
@@ -82,24 +84,29 @@ export function GroupList() {
   useEffect(() => {
     const fetchGroups = async () => {
       if (!user) {
-        console.log("No user, skipping group fetch");
+        secureLog.debug("No user, skipping group fetch");
         return;
       }
 
       // Use cached data if it's still valid
       if (isCacheValid(lastFetched)) {
-        console.log("Using cached groups data");
+        secureLog.debug("Using cached groups data");
         return;
       }
 
-      console.log("Fetching groups for user:", user.uid);
+      secureLog.info("Fetching groups", {
+        userId: secureLog.sanitizeUser(user),
+      });
       dispatch(setGroupsLoading(true));
       try {
         const userGroups = await getUserGroups(user.uid);
-        console.log("Fetched groups:", userGroups);
+        secureLog.info("Groups fetched successfully", {
+          groupCount: userGroups.length,
+          groups: secureLog.sanitizeGroups(userGroups),
+        });
         dispatch(setGroupsData(userGroups));
       } catch (err) {
-        console.error("Error fetching groups:", err);
+        secureLog.error("Error fetching groups", err);
         dispatch(
           setGroupsError(
             err instanceof Error ? err.message : "Failed to fetch groups"

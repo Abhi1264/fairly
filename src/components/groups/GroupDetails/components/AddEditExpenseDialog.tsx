@@ -19,6 +19,7 @@ import {
 } from "../../../ui/select";
 import { DatePicker } from "../../../ui/date-picker";
 import { parse } from "date-fns";
+import { toast } from "sonner";
 
 // Import types and utilities
 import type { Expense, NewExpense } from "../types/expense";
@@ -29,11 +30,11 @@ import { getUserById } from "../../../../lib/groupUtils";
 import {
   setUsersLoading,
   setUsersData,
-  setUsersError,
   selectUsersCache,
   isCacheValid,
 } from "../../../../lib/appSlice";
 import { extractTextFromImage } from "@/lib/ocrUtils";
+import { secureLog } from "../../../../lib/utils";
 
 // Type definitions
 interface User {
@@ -146,12 +147,8 @@ export function AddEditExpenseDialog({
           dispatch(setUsersData(newUsers));
         }
       } catch (error) {
-        console.error("Error fetching user info:", error);
-        dispatch(
-          setUsersError(
-            error instanceof Error ? error.message : "Failed to fetch user info"
-          )
-        );
+        secureLog.error("Error fetching user info", error);
+        toast.error("Failed to fetch user information");
       } finally {
         dispatch(setUsersLoading(false));
       }
@@ -242,7 +239,8 @@ export function AddEditExpenseDialog({
       await onSave(expenseData);
       onOpenChange(false);
     } catch (err) {
-      console.error(err);
+      secureLog.error("Error saving expense", err);
+      toast.error("Failed to save expense");
     }
   };
 
@@ -351,7 +349,8 @@ export function AddEditExpenseDialog({
         description: merchantMatch ? merchantMatch : prev.description,
       }));
     } catch (err) {
-      alert("Failed to scan receipt. Please try again.");
+      secureLog.error("Failed to scan receipt", err);
+      toast.error("Failed to scan receipt. Please try again.");
     } finally {
       setLoading(false);
     }

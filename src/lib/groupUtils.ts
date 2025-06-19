@@ -16,6 +16,7 @@ import {
   deleteDoc,
   updateDoc as firestoreUpdateDoc,
   setDoc,
+  Timestamp,
 } from "firebase/firestore";
 import { nanoid } from "nanoid";
 
@@ -62,6 +63,30 @@ interface UserData {
 }
 
 /**
+ * Converts Firestore data to serializable format by converting Timestamp objects to ISO strings
+ */
+function convertFirestoreData(data: any): any {
+  if (!data || typeof data !== "object") {
+    return data;
+  }
+
+  if (data instanceof Timestamp) {
+    return data.toDate().toISOString();
+  }
+
+  if (Array.isArray(data)) {
+    return data.map(convertFirestoreData);
+  }
+
+  const converted: any = {};
+  for (const [key, value] of Object.entries(data)) {
+    converted[key] = convertFirestoreData(value);
+  }
+
+  return converted;
+}
+
+/**
  * Creates a new group and adds the creator as a member
  * @returns The ID of the newly created group
  */
@@ -103,7 +128,10 @@ export async function getUserGroups(userId: string) {
     getDoc(doc(firestore, "groups", groupId))
   );
   const groupSnaps = await Promise.all(groupPromises);
-  return groupSnaps.map((snap) => ({ id: snap.id, ...snap.data() }));
+  return groupSnaps.map((snap) => ({
+    id: snap.id,
+    ...convertFirestoreData(snap.data()),
+  }));
 }
 
 /**
@@ -130,7 +158,12 @@ export async function joinGroup({
  */
 export async function getGroupById(groupId: string) {
   const snap = await getDoc(doc(firestore, "groups", groupId));
-  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  return snap.exists()
+    ? {
+        id: snap.id,
+        ...convertFirestoreData(snap.data()),
+      }
+    : null;
 }
 
 /**
@@ -321,7 +354,7 @@ export async function getGroupExpenses(
   const snapshot = await getDocs(q);
   let expenses = snapshot.docs.map((doc) => ({
     id: doc.id,
-    ...doc.data(),
+    ...convertFirestoreData(doc.data()),
   })) as Expense[];
 
   // Apply in-memory filters
@@ -429,5 +462,10 @@ export async function getGroupBalances(groupId: string) {
 
 export async function getUserById(userId: string): Promise<UserData | null> {
   const userSnap = await getDoc(doc(firestore, "users", userId));
-  return userSnap.exists() ? { id: userSnap.id, ...userSnap.data() } : null;
+  return userSnap.exists()
+    ? {
+        id: userSnap.id,
+        ...convertFirestoreData(userSnap.data()),
+      }
+    : null;
 }

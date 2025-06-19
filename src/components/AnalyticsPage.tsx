@@ -27,6 +27,7 @@ import {
   setAnalyticsError,
   isCacheValid,
 } from "../lib/appSlice";
+import { secureLog } from "../lib/utils";
 
 // Chart colors using CSS variables for theme support
 const COLORS = [
@@ -73,7 +74,9 @@ function LoadingSkeleton() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Expenses
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -86,7 +89,9 @@ function LoadingSkeleton() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Monthly Spend</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Average Monthly Spend
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -166,7 +171,8 @@ function LoadingSkeleton() {
 export function AnalyticsPage() {
   const user = useSelector((state: RootState) => state.app.user);
   const dispatch = useDispatch();
-  const { data, loading, error, lastFetched } = useSelector(selectAnalyticsCache);
+  const { data, loading, error, lastFetched } =
+    useSelector(selectAnalyticsCache);
 
   useEffect(() => {
     async function fetchAnalyticsData() {
@@ -188,10 +194,12 @@ export function AnalyticsPage() {
 
         dispatch(setAnalyticsData(allExpensesData));
       } catch (error) {
-        console.error("Error fetching expenses:", error);
+        secureLog.error("Error fetching expenses", error);
         dispatch(
           setAnalyticsError(
-            error instanceof Error ? error.message : "Failed to fetch analytics data"
+            error instanceof Error
+              ? error.message
+              : "Failed to fetch analytics data"
           )
         );
       }
@@ -219,49 +227,54 @@ export function AnalyticsPage() {
   );
 
   // Calculate monthly spending trends
-  const monthlyTrends = data.reduce((acc: Record<string, ChartDataPoint>, expense: Expense) => {
-    const date = new Date(expense.date).toLocaleDateString("en-US", {
-      month: "short",
-      year: "numeric",
-    });
+  const monthlyTrends = data.reduce(
+    (acc: Record<string, ChartDataPoint>, expense: Expense) => {
+      const date = new Date(expense.date).toLocaleDateString("en-US", {
+        month: "short",
+        year: "numeric",
+      });
 
-    if (!acc[date]) {
-      acc[date] = { month: date, amount: 0 };
-    }
-    acc[date].amount += expense.amount;
-    return acc;
-  }, {});
+      if (!acc[date]) {
+        acc[date] = { month: date, amount: 0 };
+      }
+      acc[date].amount += expense.amount;
+      return acc;
+    },
+    {}
+  );
 
   const monthlyTrendsData: ChartDataPoint[] = Object.values(monthlyTrends);
-  monthlyTrendsData.sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime());
+  monthlyTrendsData.sort(
+    (a, b) => new Date(a.month).getTime() - new Date(b.month).getTime()
+  );
 
   // Calculate spending by group
-  const groupSpending = data.reduce((acc: GroupSpending[], expense: Expense) => {
-    const groupId = expense.groupId;
-    const existingGroup = acc.find((g) => g.name === groupId);
+  const groupSpending = data.reduce(
+    (acc: GroupSpending[], expense: Expense) => {
+      const groupId = expense.groupId;
+      const existingGroup = acc.find((g) => g.name === groupId);
 
-    if (existingGroup) {
-      existingGroup.amount += expense.amount;
-    } else {
-      acc.push({ name: groupId, amount: expense.amount });
-    }
-    return acc;
-  }, []);
-
-  // Calculate category breakdown across all groups
-  const categoryData = data.reduce(
-    (acc: CategoryData[], expense: Expense) => {
-      const category = expense.category || "Uncategorized";
-      const existingCategory = acc.find((item) => item.name === category);
-      if (existingCategory) {
-        existingCategory.value += expense.amount;
+      if (existingGroup) {
+        existingGroup.amount += expense.amount;
       } else {
-        acc.push({ name: category, value: expense.amount });
+        acc.push({ name: groupId, amount: expense.amount });
       }
       return acc;
     },
     []
   );
+
+  // Calculate category breakdown across all groups
+  const categoryData = data.reduce((acc: CategoryData[], expense: Expense) => {
+    const category = expense.category || "Uncategorized";
+    const existingCategory = acc.find((item) => item.name === category);
+    if (existingCategory) {
+      existingCategory.value += expense.amount;
+    } else {
+      acc.push({ name: category, value: expense.amount });
+    }
+    return acc;
+  }, []);
 
   return (
     <div className="space-y-4">

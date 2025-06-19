@@ -15,6 +15,7 @@ import { ArrowRightLeft, X } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "./ui/skeleton";
 import { Badge } from "./ui/badge";
+import { secureLog } from "../lib/utils";
 
 // Comprehensive currency data with symbols and names
 const CURRENCIES = {
@@ -149,8 +150,7 @@ export function CurrencyConverter({
 
       setRates(newRates);
     } catch (error) {
-      // Fallback to static rates if API fails
-      console.error("Error fetching exchange rates:", error);
+      secureLog.error("Error fetching exchange rates", error);
       toast.error("Failed to fetch exchange rates. Using fallback rates.");
 
       const fallbackRates = {
