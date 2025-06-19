@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "../../../ui/select";
 import { DatePicker } from "../../../ui/date-picker";
+import { parse } from "date-fns";
 
 // Import types and utilities
 import type { Expense, NewExpense } from "../types/expense";
@@ -68,6 +69,17 @@ const initialExpense: NewExpense = {
     manual: {},
   },
 };
+
+const RECEIPT_DATE_FORMATS = [
+  "MM/dd/yyyy",
+  "dd/MM/yyyy",
+  "MM-dd-yyyy",
+  "dd-MM-yyyy",
+  "MM/dd/yy",
+  "dd/MM/yy",
+  "MM-dd-yy",
+  "dd-MM-yy",
+];
 
 export function AddEditExpenseDialog({
   open,
@@ -321,10 +333,21 @@ export function AddEditExpenseDialog({
       const dateMatch = text.match(/(\d{2}[\/\-]\d{2}[\/\-]\d{2,4})/);
       const merchantMatch = text.split("\n")[0];
 
+      let parsedDate = undefined;
+      if (dateMatch) {
+        for (const format of RECEIPT_DATE_FORMATS) {
+          const d = parse(dateMatch[1], format, new Date());
+          if (!isNaN(d.getTime())) {
+            parsedDate = d.toISOString();
+            break;
+          }
+        }
+      }
+
       setNewExpense((prev) => ({
         ...prev,
         amount: amountMatch ? amountMatch[1] : prev.amount,
-        date: dateMatch ? new Date(dateMatch[1]).toISOString() : prev.date,
+        date: parsedDate || prev.date,
         description: merchantMatch ? merchantMatch : prev.description,
       }));
     } catch (err) {
