@@ -22,7 +22,7 @@ import {
   getGroupBalances,
   type Currency,
 } from "../lib/groupUtils";
-import { getCurrencySymbol } from "../lib/currencyUtils";
+import { getCurrencySymbol, formatCurrencySimple } from "../lib/currencyUtils";
 import { Skeleton } from "./ui/skeleton";
 import {
   selectDashboardCache,
@@ -30,6 +30,7 @@ import {
   setDashboardData,
   setDashboardError,
   isCacheValid,
+  selectDefaultCurrency,
 } from "../lib/appSlice";
 import { secureLog } from "../lib/utils";
 
@@ -64,6 +65,7 @@ export function DashboardPage() {
   // Redux hooks for state management
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.app.user);
+  const defaultCurrency = useSelector(selectDefaultCurrency);
   const { data, loading, error, lastFetched } =
     useSelector(selectDashboardCache);
 
@@ -365,8 +367,7 @@ export function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-destructive">
-              {getCurrencySymbol("INR")}
-              {data.totals?.owe.toFixed(2)}
+              {formatCurrencySimple(data.totals?.owe || 0, defaultCurrency)}
             </div>
           </CardContent>
         </Card>
@@ -376,8 +377,7 @@ export function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">
-              {getCurrencySymbol("INR")}
-              {data.totals?.owed.toFixed(2)}
+              {formatCurrencySimple(data.totals?.owed || 0, defaultCurrency)}
             </div>
           </CardContent>
         </Card>

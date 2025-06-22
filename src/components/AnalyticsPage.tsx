@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import {
@@ -19,6 +19,7 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "../lib/store";
 import { getUserGroups, getGroupExpenses } from "../lib/groupUtils";
+import type { Currency } from "../lib/groupUtils";
 import { Skeleton } from "./ui/skeleton";
 import {
   selectAnalyticsCache,
@@ -26,8 +27,10 @@ import {
   setAnalyticsData,
   setAnalyticsError,
   isCacheValid,
+  selectDefaultCurrency,
 } from "../lib/appSlice";
 import { secureLog } from "../lib/utils";
+import { convertCurrency, formatCurrencySimple } from "../lib/currencyUtils";
 
 // Chart colors using CSS variables for theme support
 const COLORS = [
@@ -44,7 +47,7 @@ interface Expense {
   id: string;
   description: string;
   amount: number;
-  currency: string;
+  currency: Currency;
   date: string;
   category?: string;
   groupId: string;
@@ -67,7 +70,7 @@ interface CategoryData {
 
 function LoadingSkeleton() {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-w-full">
       <h2 className="text-3xl font-bold">Your Overall Analytics</h2>
 
       {/* Summary Cards */}
@@ -82,9 +85,9 @@ function LoadingSkeleton() {
             <div className="text-2xl font-bold">
               <Skeleton className="h-8 w-24" />
             </div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-xs text-muted-foreground">
               <Skeleton className="h-4 w-32" />
-            </p>
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -97,9 +100,9 @@ function LoadingSkeleton() {
             <div className="text-2xl font-bold">
               <Skeleton className="h-8 w-24" />
             </div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-xs text-muted-foreground">
               <Skeleton className="h-4 w-32" />
-            </p>
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -110,54 +113,54 @@ function LoadingSkeleton() {
             <div className="text-2xl font-bold">
               <Skeleton className="h-8 w-24" />
             </div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-xs text-muted-foreground">
               <Skeleton className="h-4 w-32" />
-            </p>
+            </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Charts */}
       <Tabs defaultValue="trends" className="space-y-4">
-        <TabsList>
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="trends">Monthly Trends</TabsTrigger>
           <TabsTrigger value="groups">Group Breakdown</TabsTrigger>
           <TabsTrigger value="categories">Category Analysis</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="trends">
+        <TabsContent value="trends" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Monthly Spending Trends</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-40 w-full">
+              <div className="h-[300px] w-full">
                 <Skeleton className="h-full w-full" />
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="groups">
+        <TabsContent value="groups" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Spending by Group</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-40 w-full">
+              <div className="h-[300px] w-full">
                 <Skeleton className="h-full w-full" />
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="categories">
+        <TabsContent value="categories" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Category Breakdown</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-40 w-full">
+              <div className="h-[300px] w-full">
                 <Skeleton className="h-full w-full" />
               </div>
             </CardContent>
@@ -170,9 +173,11 @@ function LoadingSkeleton() {
 
 export function AnalyticsPage() {
   const user = useSelector((state: RootState) => state.app.user);
+  const defaultCurrency: Currency = useSelector(selectDefaultCurrency);
   const dispatch = useDispatch();
   const { data, loading, error, lastFetched } =
     useSelector(selectAnalyticsCache);
+  const [convertedData, setConvertedData] = useState<any>(null);
 
   useEffect(() => {
     async function fetchAnalyticsData() {
@@ -208,6 +213,38 @@ export function AnalyticsPage() {
     fetchAnalyticsData();
   }, [user?.uid, dispatch, lastFetched]);
 
+  // Convert all amounts to user's preferred currency
+  useEffect(() => {
+    async function convertAmounts() {
+      if (!data) return;
+
+      try {
+        const convertedExpenses = await Promise.all(
+          data.map(async (expense: Expense) => {
+            const convertedAmount = await convertCurrency(
+              expense.amount,
+              expense.currency,
+              defaultCurrency
+            );
+            return {
+              ...expense,
+              amount: convertedAmount,
+              currency: defaultCurrency as Currency,
+            };
+          })
+        );
+
+        setConvertedData(convertedExpenses);
+      } catch (error) {
+        secureLog.error("Error converting currencies", error);
+        // Fallback to original data if conversion fails
+        setConvertedData(data);
+      }
+    }
+
+    convertAmounts();
+  }, [data, defaultCurrency]);
+
   if (loading) {
     return <LoadingSkeleton />;
   }
@@ -216,18 +253,18 @@ export function AnalyticsPage() {
     return <div className="text-red-600">{error}</div>;
   }
 
-  if (!data) {
+  if (!convertedData) {
     return null;
   }
 
   // Calculate total expenses across all groups
-  const totalExpenses = data.reduce(
+  const totalExpenses = convertedData.reduce(
     (sum: number, expense: Expense) => sum + expense.amount,
     0
   );
 
   // Calculate monthly spending trends
-  const monthlyTrends = data.reduce(
+  const monthlyTrends = convertedData.reduce(
     (acc: Record<string, ChartDataPoint>, expense: Expense) => {
       const date = new Date(expense.date).toLocaleDateString("en-US", {
         month: "short",
@@ -249,7 +286,7 @@ export function AnalyticsPage() {
   );
 
   // Calculate spending by group
-  const groupSpending = data.reduce(
+  const groupSpending = convertedData.reduce(
     (acc: GroupSpending[], expense: Expense) => {
       const groupId = expense.groupId;
       const existingGroup = acc.find((g) => g.name === groupId);
@@ -265,7 +302,7 @@ export function AnalyticsPage() {
   );
 
   // Calculate category breakdown across all groups
-  const categoryData = data.reduce((acc: CategoryData[], expense: Expense) => {
+  const categoryData = convertedData.reduce((acc: CategoryData[], expense: Expense) => {
     const category = expense.category || "Uncategorized";
     const existingCategory = acc.find((item) => item.name === category);
     if (existingCategory) {
@@ -276,8 +313,10 @@ export function AnalyticsPage() {
     return acc;
   }, []);
 
+  const currencySymbol = formatCurrencySimple(0, defaultCurrency).replace(/[\d.,]/g, '').trim();
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-w-full overflow-hidden">
       <h2 className="text-3xl font-bold">Your Overall Analytics</h2>
 
       {/* Summary Cards */}
@@ -290,10 +329,10 @@ export function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${totalExpenses.toFixed(2)}
+              {formatCurrencySimple(totalExpenses, defaultCurrency)}
             </div>
             <p className="text-xs text-muted-foreground">
-              Across {data.length} transactions
+              Across {convertedData.length} transactions
             </p>
           </CardContent>
         </Card>
@@ -305,9 +344,9 @@ export function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              $
-              {(totalExpenses / Math.max(monthlyTrendsData.length, 1)).toFixed(
-                2
+              {formatCurrencySimple(
+                totalExpenses / Math.max(monthlyTrendsData.length, 1),
+                defaultCurrency
               )}
             </div>
             <p className="text-xs text-muted-foreground">Per month</p>
@@ -328,27 +367,27 @@ export function AnalyticsPage() {
 
       {/* Charts */}
       <Tabs defaultValue="trends" className="space-y-4">
-        <TabsList>
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="trends">Monthly Trends</TabsTrigger>
           <TabsTrigger value="groups">Group Breakdown</TabsTrigger>
           <TabsTrigger value="categories">Category Analysis</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="trends">
+        <TabsContent value="trends" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Monthly Spending Trends</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-40 w-full">
+              <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={monthlyTrendsData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
-                    <YAxis tickFormatter={(value) => `$${value}`} />
+                    <YAxis tickFormatter={(value) => `${currencySymbol}${value}`} />
                     <Tooltip
                       formatter={(value: number) => [
-                        `$${value.toFixed(2)}`,
+                        formatCurrencySimple(value, defaultCurrency),
                         "Amount",
                       ]}
                     />
@@ -367,21 +406,21 @@ export function AnalyticsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="groups">
+        <TabsContent value="groups" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Spending by Group</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-40 w-full">
+              <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={groupSpending}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
-                    <YAxis tickFormatter={(value) => `$${value}`} />
+                    <YAxis tickFormatter={(value) => `${currencySymbol}${value}`} />
                     <Tooltip
                       formatter={(value: number) => [
-                        `$${value.toFixed(2)}`,
+                        formatCurrencySimple(value, defaultCurrency),
                         "Amount",
                       ]}
                     />
@@ -400,13 +439,13 @@ export function AnalyticsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="categories">
+        <TabsContent value="categories" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Category Breakdown</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-40 w-full">
+              <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -415,9 +454,9 @@ export function AnalyticsPage() {
                       nameKey="name"
                       cx="50%"
                       cy="50%"
-                      outerRadius={100}
+                      outerRadius={80}
                       label={(entry) =>
-                        `${entry.name}: $${entry.value.toFixed(2)}`
+                        `${entry.name}: ${formatCurrencySimple(entry.value, defaultCurrency)}`
                       }
                     >
                       {categoryData.map((_: unknown, index: number) => (
@@ -428,7 +467,7 @@ export function AnalyticsPage() {
                       ))}
                     </Pie>
                     <Tooltip
-                      formatter={(value: number) => `$${value.toFixed(2)}`}
+                      formatter={(value: number) => formatCurrencySimple(value, defaultCurrency)}
                     />
                     <Legend />
                   </PieChart>

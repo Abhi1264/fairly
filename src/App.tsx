@@ -7,6 +7,7 @@ import { GroupList } from "./components/GroupList";
 import { GroupDetails } from "./components/groups/GroupDetails";
 import { CurrencyConverterPage } from "./components/CurrencyConverterPage";
 import { AnalyticsPage } from "./components/AnalyticsPage";
+import { SettingsPage } from "./components/SettingsPage";
 import { Toaster } from "sonner";
 import { useSelector } from "react-redux";
 import type { RootState } from "./lib/store";
@@ -128,9 +129,7 @@ function App() {
                   path="/settings"
                   element={
                     <ProtectedRoute>
-                      <div className="container mx-auto p-4">
-                        Settings Page (Coming Soon)
-                      </div>
+                      <SettingsPage />
                     </ProtectedRoute>
                   }
                 />

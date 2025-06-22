@@ -3,7 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../../ui/card";
 // Import types and utility functions
 import type { Expense } from "../types/expense";
 import { calculateSplitAmounts } from "../../../../lib/groupUtils";
-import { getCurrencySymbol } from "../../../../lib/currencyUtils";
+import { formatCurrencySimple } from "../../../../lib/currencyUtils";
+import { useSelector } from "react-redux";
+import { selectDefaultCurrency } from "../../../../lib/appSlice";
+import type { RootState } from "../../../../lib/store";
 
 // Props interface for the BalancesTab component
 interface BalancesTabProps {
@@ -17,39 +20,39 @@ export function BalancesTab({
   members,
   currentUserId,
 }: BalancesTabProps) {
+  const defaultCurrency = useSelector(selectDefaultCurrency);
+
+  // Calculate balances for each member
+  const balances = members.map((memberId) => {
+    let balance = 0;
+
+    expenses.forEach((expense) => {
+      const splits = calculateSplitAmounts(expense);
+      const memberShare = splits[memberId] || 0;
+
+      if (expense.paidBy === memberId) {
+        // Member paid for this expense
+        balance += expense.amount;
+      }
+      // Member owes their share
+      balance -= memberShare;
+    });
+
+    return {
+      memberId,
+      balance,
+    };
+  });
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Member Balances</CardTitle>
+        <CardTitle>Balances</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="space-y-2">
           {members.map((memberId) => {
-            // Get expenses paid by this member
-            const memberExpenses = expenses.filter(
-              (exp) => exp.paidBy === memberId
-            );
-            // Get expenses where this member has a share
-            const memberShares = expenses.filter(
-              (exp) =>
-                exp.splitConfig.shares?.[memberId] ||
-                exp.splitConfig.percentages?.[memberId] ||
-                exp.splitConfig.manual?.[memberId]
-            );
-
-            // Calculate total amount paid by member
-            const paid = memberExpenses.reduce(
-              (sum, exp) => sum + exp.amount,
-              0
-            );
-            // Calculate total amount owed by member
-            const owes = memberShares.reduce((sum, exp) => {
-              const splits = calculateSplitAmounts(exp);
-              return sum + (splits[memberId] || 0);
-            }, 0);
-
-            // Calculate final balance (positive = to receive, negative = to pay)
-            const balance = paid - owes;
+            const balance = balances.find((b) => b.memberId === memberId)?.balance || 0;
 
             return (
               <div
@@ -66,8 +69,7 @@ export function BalancesTab({
                     balance >= 0 ? "text-green-600" : "text-red-600"
                   }`}
                 >
-                  {getCurrencySymbol("INR")}
-                  {Math.abs(balance).toFixed(2)}
+                  {formatCurrencySimple(Math.abs(balance), defaultCurrency)}
                   <span className="text-muted-foreground ml-1">
                     {balance >= 0 ? "to receive" : "to pay"}
                   </span>

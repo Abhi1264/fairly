@@ -1,5 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "./store";
+import type { Currency } from "./groupUtils";
 
 /**
  * User interface representing a user in the application
@@ -9,6 +10,13 @@ interface User {
   phoneNumber: string | null;
   displayName?: string | null;
   photoURL?: string | null;
+}
+
+/**
+ * User preferences interface
+ */
+interface UserPreferences {
+  defaultCurrency: Currency;
 }
 
 /**
@@ -35,6 +43,7 @@ interface AppState {
   count: number;
   user: User | null;
   authLoading: boolean;
+  preferences: UserPreferences;
   offline: OfflineState;
   cache: {
     // Cache for groups data
@@ -98,6 +107,9 @@ const initialState: AppState = {
   count: 0,
   user: null,
   authLoading: true,
+  preferences: {
+    defaultCurrency: "INR",
+  },
   offline: {
     isOnline: navigator.onLine,
     isReconnecting: false,
@@ -186,6 +198,14 @@ const appSlice = createSlice({
     },
     setAuthLoading: (state, action: PayloadAction<boolean>) => {
       state.authLoading = action.payload;
+    },
+
+    // User preferences reducers
+    setDefaultCurrency: (state, action: PayloadAction<Currency>) => {
+      state.preferences.defaultCurrency = action.payload;
+    },
+    setUserPreferences: (state, action: PayloadAction<Partial<UserPreferences>>) => {
+      state.preferences = { ...state.preferences, ...action.payload };
     },
 
     // Offline state reducers
@@ -297,6 +317,7 @@ const appSlice = createSlice({
     },
     setAnalyticsData: (state, action: PayloadAction<any[]>) => {
       state.cache.analytics.data = action.payload;
+      state.cache.analytics.loading = false;
       state.cache.analytics.lastFetched = Date.now();
       state.cache.analytics.error = null;
     },
@@ -415,6 +436,8 @@ export const {
   setUser,
   clearUser,
   setAuthLoading,
+  setDefaultCurrency,
+  setUserPreferences,
   setNetworkStatus,
   setSyncStatus,
   setPendingOperations,
@@ -455,6 +478,8 @@ export default appSlice.reducer;
 export const selectCount = (state: RootState) => state.app.count;
 export const selectUser = (state: RootState) => state.app.user;
 export const selectAuthLoading = (state: RootState) => state.app.authLoading;
+export const selectUserPreferences = (state: RootState) => state.app.preferences;
+export const selectDefaultCurrency = (state: RootState) => state.app.preferences.defaultCurrency;
 export const selectOfflineState = (state: RootState) => state.app.offline;
 export const selectIsOnline = (state: RootState) => state.app.offline.isOnline;
 export const selectIsSyncing = (state: RootState) => state.app.offline.isSyncing;

@@ -110,6 +110,52 @@ export async function formatCurrency(
 }
 
 /**
+ * Formats a currency amount to the user's preferred currency
+ * @param amount - Amount to format
+ * @param fromCurrency - Source currency of the amount
+ * @param toCurrency - Target currency for display
+ * @param locale - Locale for formatting (defaults to en-US)
+ * @returns Promise resolving to formatted currency string
+ */
+export async function formatCurrencyToPreferred(
+  amount: number,
+  fromCurrency: Currency,
+  toCurrency: Currency,
+  locale: string = "en-US"
+): Promise<string> {
+  // Convert amount to preferred currency
+  const convertedAmount = await convertCurrency(amount, fromCurrency, toCurrency);
+
+  // Format using Intl API with preferred currency
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: toCurrency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(convertedAmount);
+}
+
+/**
+ * Simple currency formatting without conversion
+ * @param amount - Amount to format
+ * @param currency - Currency to format in
+ * @param locale - Locale for formatting (defaults to en-US)
+ * @returns Formatted currency string
+ */
+export function formatCurrencySimple(
+  amount: number,
+  currency: Currency,
+  locale: string = "en-US"
+): string {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
+
+/**
  * Returns the currency symbol for a given currency
  * @param currency - Currency to get symbol for
  * @returns Currency symbol as string
