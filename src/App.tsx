@@ -13,6 +13,7 @@ import type { RootState } from "./lib/store";
 import { ThemeProvider } from "./components/ThemeToggle";
 import { Skeleton } from "./components/ui/skeleton";
 import { AuthProvider } from "./components/AuthProvider";
+import { OfflineProvider } from "./components/OfflineProvider";
 
 /**
  * ProtectedRoute Component
@@ -70,86 +71,88 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
  */
 function App() {
   return (
-    // Wrap app with theme and authentication providers
+    // Wrap app with theme, authentication, and offline providers
     <ThemeProvider>
       <AuthProvider>
-        <Router>
-          <div className="min-h-screen bg-background">
-            <Routes>
-              {/* Public routes accessible without authentication */}
-              <Route path="/" element={<LandingPage />} />
+        <OfflineProvider>
+          <Router>
+            <div className="min-h-screen bg-background">
+              <Routes>
+                {/* Public routes accessible without authentication */}
+                <Route path="/" element={<LandingPage />} />
 
-              {/* Protected routes requiring authentication */}
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <DashboardPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/groups"
-                element={
-                  <ProtectedRoute>
-                    <GroupList />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/groups/:groupId"
-                element={
-                  <ProtectedRoute>
-                    <GroupDetails />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/currency-converter"
-                element={
-                  <ProtectedRoute>
-                    <CurrencyConverterPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/analytics"
-                element={
-                  <ProtectedRoute>
-                    <AnalyticsPage />
-                  </ProtectedRoute>
-                }
-              />
+                {/* Protected routes requiring authentication */}
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/groups"
+                  element={
+                    <ProtectedRoute>
+                      <GroupList />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/groups/:groupId"
+                  element={
+                    <ProtectedRoute>
+                      <GroupDetails />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/currency-converter"
+                  element={
+                    <ProtectedRoute>
+                      <CurrencyConverterPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/analytics"
+                  element={
+                    <ProtectedRoute>
+                      <AnalyticsPage />
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* Feature routes (coming soon) */}
-              <Route
-                path="/settings"
-                element={
-                  <ProtectedRoute>
-                    <div className="container mx-auto p-4">
-                      Settings Page (Coming Soon)
-                    </div>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <div className="container mx-auto p-4">
-                      Profile Page (Coming Soon)
-                    </div>
-                  </ProtectedRoute>
-                }
-              />
+                {/* Feature routes (coming soon) */}
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute>
+                      <div className="container mx-auto p-4">
+                        Settings Page (Coming Soon)
+                      </div>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <div className="container mx-auto p-4">
+                        Profile Page (Coming Soon)
+                      </div>
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* Fallback route for undefined paths */}
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-            {/* Global toast notifications */}
-            <Toaster />
-          </div>
-        </Router>
+                {/* Fallback route for undefined paths */}
+                <Route path="*" element={<Navigate to="/" />} />
+              </Routes>
+              {/* Global toast notifications */}
+              <Toaster />
+            </div>
+          </Router>
+        </OfflineProvider>
       </AuthProvider>
     </ThemeProvider>
   );

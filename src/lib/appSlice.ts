@@ -12,6 +12,22 @@ interface User {
 }
 
 /**
+ * Offline state interface
+ */
+interface OfflineState {
+  isOnline: boolean;
+  isReconnecting: boolean;
+  isSyncing: boolean;
+  pendingOperations: number;
+  lastSync: number;
+  storageInfo: {
+    used: number;
+    available: number;
+    percentage: number;
+  };
+}
+
+/**
  * AppState interface defining the shape of the application state
  * Includes user data, authentication state, and various cache objects
  */
@@ -19,6 +35,7 @@ interface AppState {
   count: number;
   user: User | null;
   authLoading: boolean;
+  offline: OfflineState;
   cache: {
     // Cache for groups data
     groups: {
@@ -81,6 +98,18 @@ const initialState: AppState = {
   count: 0,
   user: null,
   authLoading: true,
+  offline: {
+    isOnline: navigator.onLine,
+    isReconnecting: false,
+    isSyncing: false,
+    pendingOperations: 0,
+    lastSync: 0,
+    storageInfo: {
+      used: 0,
+      available: 5 * 1024 * 1024, // 5MB estimate
+      percentage: 0,
+    },
+  },
   cache: {
     groups: {
       data: null,
@@ -159,6 +188,27 @@ const appSlice = createSlice({
       state.authLoading = action.payload;
     },
 
+    // Offline state reducers
+    setNetworkStatus: (state, action: PayloadAction<{ isOnline: boolean; isReconnecting: boolean }>) => {
+      state.offline.isOnline = action.payload.isOnline;
+      state.offline.isReconnecting = action.payload.isReconnecting;
+    },
+    setSyncStatus: (state, action: PayloadAction<boolean>) => {
+      state.offline.isSyncing = action.payload;
+    },
+    setPendingOperations: (state, action: PayloadAction<number>) => {
+      state.offline.pendingOperations = action.payload;
+    },
+    setLastSync: (state, action: PayloadAction<number>) => {
+      state.offline.lastSync = action.payload;
+    },
+    setStorageInfo: (state, action: PayloadAction<{ used: number; available: number; percentage: number }>) => {
+      state.offline.storageInfo = action.payload;
+    },
+    updateOfflineState: (state, action: PayloadAction<Partial<OfflineState>>) => {
+      state.offline = { ...state.offline, ...action.payload };
+    },
+
     // Groups cache reducers
     setGroupsLoading: (state, action: PayloadAction<boolean>) => {
       state.cache.groups.loading = action.payload;
@@ -204,8 +254,7 @@ const appSlice = createSlice({
       if (!state.cache.groupDetails.data) {
         state.cache.groupDetails.data = {};
       }
-      state.cache.groupDetails.data[action.payload.groupId] =
-        action.payload.data;
+      state.cache.groupDetails.data[action.payload.groupId] = action.payload.data;
       state.cache.groupDetails.lastFetched = Date.now();
       state.cache.groupDetails.error = null;
     },
@@ -214,27 +263,11 @@ const appSlice = createSlice({
       state.cache.groupDetails.loading = false;
     },
 
-    // Cache management
-    clearCache: (state) => {
-      state.cache = initialState.cache;
-    },
-
     // Dashboard cache reducers
     setDashboardLoading: (state, action: PayloadAction<boolean>) => {
       state.cache.dashboard.loading = action.payload;
     },
-    setDashboardData: (
-      state,
-      action: PayloadAction<{
-        groups: any[];
-        expenses: any[];
-        balances: Record<string, any>;
-        totals: {
-          owed: number;
-          owe: number;
-        };
-      }>
-    ) => {
+    setDashboardData: (state, action: PayloadAction<any>) => {
       state.cache.dashboard.data = action.payload;
       state.cache.dashboard.lastFetched = Date.now();
       state.cache.dashboard.error = null;
@@ -249,13 +282,7 @@ const appSlice = createSlice({
       state.cache.users.loading = action.payload;
     },
     setUsersData: (state, action: PayloadAction<Record<string, User>>) => {
-      if (!state.cache.users.data) {
-        state.cache.users.data = {};
-      }
-      state.cache.users.data = {
-        ...state.cache.users.data,
-        ...action.payload,
-      };
+      state.cache.users.data = action.payload;
       state.cache.users.lastFetched = Date.now();
       state.cache.users.error = null;
     },
@@ -272,16 +299,115 @@ const appSlice = createSlice({
       state.cache.analytics.data = action.payload;
       state.cache.analytics.lastFetched = Date.now();
       state.cache.analytics.error = null;
-      state.cache.analytics.loading = false;
     },
     setAnalyticsError: (state, action: PayloadAction<string>) => {
       state.cache.analytics.error = action.payload;
       state.cache.analytics.loading = false;
     },
+
+    // Clear cache reducers
+    clearGroupsCache: (state) => {
+      state.cache.groups = {
+        data: null,
+        loading: false,
+        error: null,
+        lastFetched: null,
+      };
+    },
+    clearExpensesCache: (state) => {
+      state.cache.expenses = {
+        data: null,
+        loading: false,
+        error: null,
+        lastFetched: null,
+      };
+    },
+    clearGroupDetailsCache: (state) => {
+      state.cache.groupDetails = {
+        data: null,
+        loading: false,
+        error: null,
+        lastFetched: null,
+      };
+    },
+    clearDashboardCache: (state) => {
+      state.cache.dashboard = {
+        data: {
+          groups: null,
+          expenses: null,
+          balances: null,
+          totals: null,
+        },
+        loading: false,
+        error: null,
+        lastFetched: null,
+      };
+    },
+    clearUsersCache: (state) => {
+      state.cache.users = {
+        data: null,
+        loading: false,
+        error: null,
+        lastFetched: null,
+      };
+    },
+    clearAnalyticsCache: (state) => {
+      state.cache.analytics = {
+        data: null,
+        loading: false,
+        error: null,
+        lastFetched: null,
+      };
+    },
+    clearAllCache: (state) => {
+      state.cache = {
+        groups: {
+          data: null,
+          loading: false,
+          error: null,
+          lastFetched: null,
+        },
+        expenses: {
+          data: null,
+          loading: false,
+          error: null,
+          lastFetched: null,
+        },
+        groupDetails: {
+          data: null,
+          loading: false,
+          error: null,
+          lastFetched: null,
+        },
+        dashboard: {
+          data: {
+            groups: null,
+            expenses: null,
+            balances: null,
+            totals: null,
+          },
+          loading: false,
+          error: null,
+          lastFetched: null,
+        },
+        users: {
+          data: null,
+          loading: false,
+          error: null,
+          lastFetched: null,
+        },
+        analytics: {
+          data: null,
+          loading: false,
+          error: null,
+          lastFetched: null,
+        },
+      };
+    },
   },
 });
 
-// Export all actions
+// Export actions
 export const {
   increment,
   decrement,
@@ -289,6 +415,12 @@ export const {
   setUser,
   clearUser,
   setAuthLoading,
+  setNetworkStatus,
+  setSyncStatus,
+  setPendingOperations,
+  setLastSync,
+  setStorageInfo,
+  updateOfflineState,
   setGroupsLoading,
   setGroupsData,
   setGroupsError,
@@ -298,7 +430,6 @@ export const {
   setGroupDetailsLoading,
   setGroupDetailsData,
   setGroupDetailsError,
-  clearCache,
   setDashboardLoading,
   setDashboardData,
   setDashboardError,
@@ -308,11 +439,29 @@ export const {
   setAnalyticsLoading,
   setAnalyticsData,
   setAnalyticsError,
+  clearGroupsCache,
+  clearExpensesCache,
+  clearGroupDetailsCache,
+  clearDashboardCache,
+  clearUsersCache,
+  clearAnalyticsCache,
+  clearAllCache,
 } = appSlice.actions;
 
-/**
- * Selectors for accessing cache data from the Redux store
- */
+// Export reducer
+export default appSlice.reducer;
+
+// Export selectors
+export const selectCount = (state: RootState) => state.app.count;
+export const selectUser = (state: RootState) => state.app.user;
+export const selectAuthLoading = (state: RootState) => state.app.authLoading;
+export const selectOfflineState = (state: RootState) => state.app.offline;
+export const selectIsOnline = (state: RootState) => state.app.offline.isOnline;
+export const selectIsSyncing = (state: RootState) => state.app.offline.isSyncing;
+export const selectPendingOperations = (state: RootState) => state.app.offline.pendingOperations;
+export const selectLastSync = (state: RootState) => state.app.offline.lastSync;
+export const selectStorageInfo = (state: RootState) => state.app.offline.storageInfo;
+
 export const selectGroupsCache = (state: RootState) => state.app.cache.groups;
 export const selectExpensesCache = (state: RootState) =>
   state.app.cache.expenses;
@@ -323,14 +472,8 @@ export const selectDashboardCache = (state: RootState) =>
 export const selectUsersCache = (state: RootState) => state.app.cache.users;
 export const selectAnalyticsCache = (state: RootState) => state.app.cache.analytics;
 
-/**
- * Helper function to check if cached data is still valid
- * @param lastFetched - Timestamp of when the data was last fetched
- * @returns boolean indicating if the cache is still valid
- */
+// Cache validation utility
 export const isCacheValid = (lastFetched: number | null) => {
   if (!lastFetched) return false;
   return Date.now() - lastFetched < CACHE_DURATION;
 };
-
-export default appSlice.reducer;

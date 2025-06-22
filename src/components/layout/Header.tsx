@@ -4,6 +4,7 @@ import { Menu } from "lucide-react";
 import { Logo } from "../Logo";
 import { ThemeToggle } from "../ThemeToggle";
 import { CreateGroupModal } from "../CreateGroupModal";
+import { OfflineIndicator } from "../OfflineIndicator";
 
 // Props interface for the Header component
 interface HeaderProps {
@@ -13,7 +14,7 @@ interface HeaderProps {
 
 /**
  * Header component that displays the app's top navigation bar
- * Includes mobile menu toggle, logo, theme toggle, and group creation modal
+ * Includes mobile menu toggle, logo, theme toggle, group creation modal, and offline indicator
  */
 export function Header({ setIsMobileSidebarOpen }: HeaderProps) {
   return (
@@ -35,9 +36,17 @@ export function Header({ setIsMobileSidebarOpen }: HeaderProps) {
           </Link>
         </div>
 
-        {/* Right section: Theme toggle and create group button */}
+        {/* Center section: Offline indicator (hidden on mobile) */}
+        <div className="hidden md:flex items-center justify-center flex-1">
+          <OfflineIndicator />
+        </div>
+
+        {/* Right section: Theme toggle, offline indicator (mobile), and create group button */}
         <div className="ml-auto flex items-center gap-2">
           <ThemeToggle />
+          <div className="md:hidden">
+            <OfflineIndicator />
+          </div>
           <CreateGroupModal />
         </div>
       </div>

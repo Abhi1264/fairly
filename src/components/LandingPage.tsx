@@ -3,7 +3,7 @@ import { LandingHeader } from "./LandingHeader";
 import { HeroSection } from "./HeroSection";
 import { SocialProofSection } from "./SocialProofSection";
 import { FeaturesSection } from "./FeaturesSection";
-import { PricingSection } from "./PricingSection";
+// import { PricingSection } from "./PricingSection";
 import { FAQSection } from "./FAQSection";
 import { CTASection } from "./CTASection";
 import { LandingFooter } from "./LandingFooter";
@@ -20,7 +20,7 @@ export function LandingPage() {
       <HeroSection />
       <SocialProofSection />
       <FeaturesSection />
-      <PricingSection />
+      {/* <PricingSection /> */}
       <FAQSection />
       <CTASection />
       <LandingFooter />

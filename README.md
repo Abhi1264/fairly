@@ -30,6 +30,13 @@ A modern React application built with TypeScript, Vite, and a comprehensive set 
   - Filter by amount range
   - Filter by currency
   - Filter by category
+- 📱 **Full Offline Support**:
+  - Progressive Web App (PWA) with service worker
+  - Offline-first data operations (create, edit, delete)
+  - Automatic sync when connection is restored
+  - Real-time network status indicators
+  - Local data caching with localStorage
+  - Background sync with retry logic
 - 🔥 **Backend Integration**: Firebase integration for backend services
 - 🛣️ **Routing**: React Router for client-side routing
 - 📅 **Date Handling**: Date-fns for modern date manipulation
