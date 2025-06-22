@@ -72,4 +72,4 @@ export function OfflineProvider({ children }: OfflineProviderProps) {
   return <>{children}</>;
 }
 
-export default OfflineProvider; 
+export default OfflineProvider;

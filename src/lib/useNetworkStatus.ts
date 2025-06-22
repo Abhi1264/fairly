@@ -17,20 +17,22 @@ export function useNetworkStatus(): NetworkStatus {
     // Initialize with current network status
     const isOnline = navigator.onLine;
     const storedStatus = offlineStorage.getNetworkStatus();
-    
+
     return {
       isOnline,
       isReconnecting: false,
       lastOnline: storedStatus?.isOnline ? storedStatus.timestamp : null,
-      lastOffline: !storedStatus?.isOnline ? storedStatus?.timestamp || null : null,
+      lastOffline: !storedStatus?.isOnline
+        ? storedStatus?.timestamp || null
+        : null,
     };
   });
 
   // Update network status
   const updateStatus = useCallback((isOnline: boolean) => {
     const now = Date.now();
-    
-    setStatus(prev => {
+
+    setStatus((prev) => {
       const newStatus: NetworkStatus = {
         isOnline,
         isReconnecting: !isOnline && prev.isOnline, // Set reconnecting when going offline
@@ -40,14 +42,14 @@ export function useNetworkStatus(): NetworkStatus {
 
       // Store in offline storage
       offlineStorage.setNetworkStatus(isOnline);
-      
+
       return newStatus;
     });
 
     // Clear reconnecting state after a delay
     if (!isOnline) {
       setTimeout(() => {
-        setStatus(prev => ({ ...prev, isReconnecting: false }));
+        setStatus((prev) => ({ ...prev, isReconnecting: false }));
       }, 3000);
     }
   }, []);
@@ -93,4 +95,4 @@ export function useIsOnline(): boolean {
 export function useIsReconnecting(): boolean {
   const { isReconnecting } = useNetworkStatus();
   return isReconnecting;
-} 
+}

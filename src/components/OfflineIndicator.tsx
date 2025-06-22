@@ -1,7 +1,13 @@
 import React from "react";
 import { useNetworkStatus } from "../lib/useNetworkStatus";
 import { offlineSync } from "../lib/offlineSync";
-import { Wifi, WifiOff, RefreshCw, CheckCircle, AlertCircle } from "lucide-react";
+import {
+  Wifi,
+  WifiOff,
+  RefreshCw,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { toast } from "sonner";
@@ -11,10 +17,15 @@ interface OfflineIndicatorProps {
   showDetails?: boolean;
 }
 
-export function OfflineIndicator({ className = "", showDetails = false }: OfflineIndicatorProps) {
+export function OfflineIndicator({
+  className = "",
+  showDetails = false,
+}: OfflineIndicatorProps) {
   const { isOnline, isReconnecting } = useNetworkStatus();
   const [isSyncing, setIsSyncing] = React.useState(false);
-  const [syncStats, setSyncStats] = React.useState(() => offlineSync.getSyncStats());
+  const [syncStats, setSyncStats] = React.useState(() =>
+    offlineSync.getSyncStats()
+  );
 
   // Listen to sync status changes
   React.useEffect(() => {
@@ -53,7 +64,11 @@ export function OfflineIndicator({ className = "", showDetails = false }: Offlin
   };
 
   const handleClearData = () => {
-    if (confirm("Are you sure you want to clear all offline data? This cannot be undone.")) {
+    if (
+      confirm(
+        "Are you sure you want to clear all offline data? This cannot be undone."
+      )
+    ) {
       offlineSync.clearAllOfflineData();
       setSyncStats(offlineSync.getSyncStats());
       toast.success("Offline data cleared");
@@ -119,7 +134,7 @@ export function OfflineIndicator({ className = "", showDetails = false }: Offlin
                 <span className="text-red-500">Never</span>
               )}
             </div>
-            
+
             <div className="flex items-center gap-1">
               <span>Storage:</span>
               <span>{syncStats.storageInfo.percentage.toFixed(1)}% used</span>
@@ -154,4 +169,4 @@ export function OfflineIndicator({ className = "", showDetails = false }: Offlin
   );
 }
 
-export default OfflineIndicator; 
+export default OfflineIndicator;

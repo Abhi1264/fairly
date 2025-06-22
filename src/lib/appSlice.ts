@@ -204,12 +204,18 @@ const appSlice = createSlice({
     setDefaultCurrency: (state, action: PayloadAction<Currency>) => {
       state.preferences.defaultCurrency = action.payload;
     },
-    setUserPreferences: (state, action: PayloadAction<Partial<UserPreferences>>) => {
+    setUserPreferences: (
+      state,
+      action: PayloadAction<Partial<UserPreferences>>
+    ) => {
       state.preferences = { ...state.preferences, ...action.payload };
     },
 
     // Offline state reducers
-    setNetworkStatus: (state, action: PayloadAction<{ isOnline: boolean; isReconnecting: boolean }>) => {
+    setNetworkStatus: (
+      state,
+      action: PayloadAction<{ isOnline: boolean; isReconnecting: boolean }>
+    ) => {
       state.offline.isOnline = action.payload.isOnline;
       state.offline.isReconnecting = action.payload.isReconnecting;
     },
@@ -222,10 +228,20 @@ const appSlice = createSlice({
     setLastSync: (state, action: PayloadAction<number>) => {
       state.offline.lastSync = action.payload;
     },
-    setStorageInfo: (state, action: PayloadAction<{ used: number; available: number; percentage: number }>) => {
+    setStorageInfo: (
+      state,
+      action: PayloadAction<{
+        used: number;
+        available: number;
+        percentage: number;
+      }>
+    ) => {
       state.offline.storageInfo = action.payload;
     },
-    updateOfflineState: (state, action: PayloadAction<Partial<OfflineState>>) => {
+    updateOfflineState: (
+      state,
+      action: PayloadAction<Partial<OfflineState>>
+    ) => {
       state.offline = { ...state.offline, ...action.payload };
     },
 
@@ -274,7 +290,8 @@ const appSlice = createSlice({
       if (!state.cache.groupDetails.data) {
         state.cache.groupDetails.data = {};
       }
-      state.cache.groupDetails.data[action.payload.groupId] = action.payload.data;
+      state.cache.groupDetails.data[action.payload.groupId] =
+        action.payload.data;
       state.cache.groupDetails.lastFetched = Date.now();
       state.cache.groupDetails.error = null;
     },
@@ -478,14 +495,19 @@ export default appSlice.reducer;
 export const selectCount = (state: RootState) => state.app.count;
 export const selectUser = (state: RootState) => state.app.user;
 export const selectAuthLoading = (state: RootState) => state.app.authLoading;
-export const selectUserPreferences = (state: RootState) => state.app.preferences;
-export const selectDefaultCurrency = (state: RootState) => state.app.preferences.defaultCurrency;
+export const selectUserPreferences = (state: RootState) =>
+  state.app.preferences;
+export const selectDefaultCurrency = (state: RootState) =>
+  state.app.preferences.defaultCurrency;
 export const selectOfflineState = (state: RootState) => state.app.offline;
 export const selectIsOnline = (state: RootState) => state.app.offline.isOnline;
-export const selectIsSyncing = (state: RootState) => state.app.offline.isSyncing;
-export const selectPendingOperations = (state: RootState) => state.app.offline.pendingOperations;
+export const selectIsSyncing = (state: RootState) =>
+  state.app.offline.isSyncing;
+export const selectPendingOperations = (state: RootState) =>
+  state.app.offline.pendingOperations;
 export const selectLastSync = (state: RootState) => state.app.offline.lastSync;
-export const selectStorageInfo = (state: RootState) => state.app.offline.storageInfo;
+export const selectStorageInfo = (state: RootState) =>
+  state.app.offline.storageInfo;
 
 export const selectGroupsCache = (state: RootState) => state.app.cache.groups;
 export const selectExpensesCache = (state: RootState) =>
@@ -495,7 +517,8 @@ export const selectGroupDetailsCache = (state: RootState) =>
 export const selectDashboardCache = (state: RootState) =>
   state.app.cache.dashboard;
 export const selectUsersCache = (state: RootState) => state.app.cache.users;
-export const selectAnalyticsCache = (state: RootState) => state.app.cache.analytics;
+export const selectAnalyticsCache = (state: RootState) =>
+  state.app.cache.analytics;
 
 // Cache validation utility
 export const isCacheValid = (lastFetched: number | null) => {

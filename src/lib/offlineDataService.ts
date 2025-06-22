@@ -50,7 +50,7 @@ class OfflineDataService {
           ...data,
           createdAt: serverTimestamp(),
         });
-        
+
         // Cache the created document
         offlineStorage.cacheDocument(collectionName, docRef.id, {
           ...data,
@@ -66,8 +66,10 @@ class OfflineDataService {
     }
 
     // Offline handling
-    const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+    const tempId = `temp_${Date.now()}_${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
+
     // Cache the document with temp ID
     offlineStorage.cacheDocument(collectionName, tempId, {
       ...data,
@@ -93,23 +95,33 @@ class OfflineDataService {
   /**
    * Get a document with offline support
    */
-  async getDocument(collectionName: string, documentId: string): Promise<any | null> {
+  async getDocument(
+    collectionName: string,
+    documentId: string
+  ): Promise<any | null> {
     // Check cache first
-    const cachedData = offlineStorage.getCachedDocument(collectionName, documentId);
-    
+    const cachedData = offlineStorage.getCachedDocument(
+      collectionName,
+      documentId
+    );
+
     if (this.isOnline()) {
       try {
         // Try to get fresh data
         const docRef = doc(firestore, collectionName, documentId);
         const docSnap = await getDoc(docRef);
-        
+
         if (docSnap.exists()) {
           const data = this.convertFirestoreData(docSnap.data());
           const documentData = { id: docSnap.id, ...data };
-          
+
           // Update cache
-          offlineStorage.cacheDocument(collectionName, documentId, documentData);
-          
+          offlineStorage.cacheDocument(
+            collectionName,
+            documentId,
+            documentData
+          );
+
           return documentData;
         }
       } catch (error) {
@@ -124,9 +136,16 @@ class OfflineDataService {
   /**
    * Update a document with offline support
    */
-  async updateDocument(collectionName: string, documentId: string, updates: any): Promise<void> {
+  async updateDocument(
+    collectionName: string,
+    documentId: string,
+    updates: any
+  ): Promise<void> {
     // Update cache immediately for optimistic UI
-    const cachedData = offlineStorage.getCachedDocument(collectionName, documentId);
+    const cachedData = offlineStorage.getCachedDocument(
+      collectionName,
+      documentId
+    );
     if (cachedData) {
       offlineStorage.cacheDocument(collectionName, documentId, {
         ...cachedData,
@@ -143,7 +162,7 @@ class OfflineDataService {
           ...updates,
           updatedAt: serverTimestamp(),
         });
-        
+
         return;
       } catch (error) {
         console.error("Online update failed, falling back to offline:", error);
@@ -168,7 +187,10 @@ class OfflineDataService {
   /**
    * Delete a document with offline support
    */
-  async deleteDocument(collectionName: string, documentId: string): Promise<void> {
+  async deleteDocument(
+    collectionName: string,
+    documentId: string
+  ): Promise<void> {
     // Remove from cache immediately for optimistic UI
     offlineStorage.removeCachedDocument(collectionName, documentId);
 
@@ -177,7 +199,7 @@ class OfflineDataService {
         // Try online delete
         const docRef = doc(firestore, collectionName, documentId);
         await deleteDoc(docRef);
-        
+
         return;
       } catch (error) {
         console.error("Online delete failed, falling back to offline:", error);
@@ -202,7 +224,7 @@ class OfflineDataService {
     // For now, return cached data for the collection
     // In a more sophisticated implementation, you'd implement query caching
     const offlineData = offlineStorage.getOfflineData();
-    
+
     switch (collectionName) {
       case "groups":
         return Object.values(offlineData.groups);
@@ -219,7 +241,11 @@ class OfflineDataService {
   /**
    * Set a document with offline support
    */
-  async setDocument(collectionName: string, documentId: string, data: any): Promise<void> {
+  async setDocument(
+    collectionName: string,
+    documentId: string,
+    data: any
+  ): Promise<void> {
     // Update cache immediately
     offlineStorage.cacheDocument(collectionName, documentId, {
       ...data,
@@ -235,7 +261,7 @@ class OfflineDataService {
           ...data,
           updatedAt: serverTimestamp(),
         });
-        
+
         return;
       } catch (error) {
         console.error("Online set failed, falling back to offline:", error);
@@ -303,4 +329,4 @@ class OfflineDataService {
   }
 }
 
-export const offlineDataService = OfflineDataService.getInstance(); 
+export const offlineDataService = OfflineDataService.getInstance();

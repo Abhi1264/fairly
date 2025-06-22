@@ -35,7 +35,7 @@ class OfflineSyncService {
   addSyncListener(listener: (isSyncing: boolean) => void): () => void {
     this.syncListeners.push(listener);
     return () => {
-      this.syncListeners = this.syncListeners.filter(l => l !== listener);
+      this.syncListeners = this.syncListeners.filter((l) => l !== listener);
     };
   }
 
@@ -43,7 +43,7 @@ class OfflineSyncService {
    * Notify listeners of sync status change
    */
   private notifySyncStatus(isSyncing: boolean): void {
-    this.syncListeners.forEach(listener => listener(isSyncing));
+    this.syncListeners.forEach((listener) => listener(isSyncing));
   }
 
   /**
@@ -73,7 +73,7 @@ class OfflineSyncService {
 
     try {
       console.log(`Starting sync of ${queue.length} operations`);
-      
+
       let successCount = 0;
       let errorCount = 0;
 
@@ -84,17 +84,19 @@ class OfflineSyncService {
           successCount++;
         } catch (error) {
           console.error(`Failed to sync operation ${operation.id}:`, error);
-          
+
           // Increment retry count
           const newRetryCount = operation.retryCount + 1;
           offlineStorage.updateOperationRetry(operation.id, newRetryCount);
 
           // Remove operation if it has been retried too many times
           if (newRetryCount >= 3) {
-            console.warn(`Removing operation ${operation.id} after ${newRetryCount} failed attempts`);
+            console.warn(
+              `Removing operation ${operation.id} after ${newRetryCount} failed attempts`
+            );
             offlineStorage.removeFromQueue(operation.id);
           }
-          
+
           errorCount++;
         }
       }
@@ -102,16 +104,17 @@ class OfflineSyncService {
       // Update last sync timestamp
       offlineStorage.setLastSync(Date.now());
 
-      console.log(`Sync completed: ${successCount} successful, ${errorCount} failed`);
+      console.log(
+        `Sync completed: ${successCount} successful, ${errorCount} failed`
+      );
 
       if (successCount > 0) {
         toast.success(`Synced ${successCount} offline changes`);
       }
-      
+
       if (errorCount > 0) {
         toast.error(`${errorCount} operations failed to sync`);
       }
-
     } catch (error) {
       console.error("Sync failed:", error);
       toast.error("Failed to sync offline changes");
@@ -143,14 +146,16 @@ class OfflineSyncService {
   /**
    * Process CREATE operation
    */
-  private async processCreateOperation(operation: OfflineOperation): Promise<void> {
+  private async processCreateOperation(
+    operation: OfflineOperation
+  ): Promise<void> {
     if (!operation.data) {
       throw new Error("CREATE operation missing data");
     }
 
     const collectionRef = collection(firestore, operation.collection);
     const docRef = await addDoc(collectionRef, operation.data);
-    
+
     // Update cached data with the new document ID
     offlineStorage.cacheDocument(operation.collection, docRef.id, {
       ...operation.data,
@@ -161,13 +166,15 @@ class OfflineSyncService {
   /**
    * Process UPDATE operation
    */
-  private async processUpdateOperation(operation: OfflineOperation): Promise<void> {
+  private async processUpdateOperation(
+    operation: OfflineOperation
+  ): Promise<void> {
     if (!operation.documentId) {
       throw new Error("UPDATE operation missing document ID");
     }
 
     const docRef = doc(firestore, operation.collection, operation.documentId);
-    
+
     // Check if document exists
     const docSnap = await getDoc(docRef);
     if (!docSnap.exists()) {
@@ -176,15 +183,22 @@ class OfflineSyncService {
 
     // Update the document
     await updateDoc(docRef, operation.data || {});
-    
+
     // Update cached data
     if (operation.data) {
-      const cachedData = offlineStorage.getCachedDocument(operation.collection, operation.documentId);
+      const cachedData = offlineStorage.getCachedDocument(
+        operation.collection,
+        operation.documentId
+      );
       if (cachedData) {
-        offlineStorage.cacheDocument(operation.collection, operation.documentId, {
-          ...cachedData,
-          ...operation.data,
-        });
+        offlineStorage.cacheDocument(
+          operation.collection,
+          operation.documentId,
+          {
+            ...cachedData,
+            ...operation.data,
+          }
+        );
       }
     }
   }
@@ -192,26 +206,34 @@ class OfflineSyncService {
   /**
    * Process DELETE operation
    */
-  private async processDeleteOperation(operation: OfflineOperation): Promise<void> {
+  private async processDeleteOperation(
+    operation: OfflineOperation
+  ): Promise<void> {
     if (!operation.documentId) {
       throw new Error("DELETE operation missing document ID");
     }
 
     const docRef = doc(firestore, operation.collection, operation.documentId);
-    
+
     // Check if document exists
     const docSnap = await getDoc(docRef);
     if (!docSnap.exists()) {
       // Document already deleted, just remove from cache
-      offlineStorage.removeCachedDocument(operation.collection, operation.documentId);
+      offlineStorage.removeCachedDocument(
+        operation.collection,
+        operation.documentId
+      );
       return;
     }
 
     // Delete the document
     await deleteDoc(docRef);
-    
+
     // Remove from cache
-    offlineStorage.removeCachedDocument(operation.collection, operation.documentId);
+    offlineStorage.removeCachedDocument(
+      operation.collection,
+      operation.documentId
+    );
   }
 
   /**
@@ -242,4 +264,4 @@ class OfflineSyncService {
   }
 }
 
-export const offlineSync = OfflineSyncService.getInstance(); 
+export const offlineSync = OfflineSyncService.getInstance();

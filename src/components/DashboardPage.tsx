@@ -22,7 +22,7 @@ import {
   getGroupBalances,
   type Currency,
 } from "../lib/groupUtils";
-import { getCurrencySymbol, formatCurrencySimple } from "../lib/currencyUtils";
+import { formatCurrencySimple } from "../lib/currencyUtils";
 import { Skeleton } from "./ui/skeleton";
 import {
   selectDashboardCache,

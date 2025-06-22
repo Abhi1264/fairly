@@ -302,18 +302,23 @@ export function AnalyticsPage() {
   );
 
   // Calculate category breakdown across all groups
-  const categoryData = convertedData.reduce((acc: CategoryData[], expense: Expense) => {
-    const category = expense.category || "Uncategorized";
-    const existingCategory = acc.find((item) => item.name === category);
-    if (existingCategory) {
-      existingCategory.value += expense.amount;
-    } else {
-      acc.push({ name: category, value: expense.amount });
-    }
-    return acc;
-  }, []);
+  const categoryData = convertedData.reduce(
+    (acc: CategoryData[], expense: Expense) => {
+      const category = expense.category || "Uncategorized";
+      const existingCategory = acc.find((item) => item.name === category);
+      if (existingCategory) {
+        existingCategory.value += expense.amount;
+      } else {
+        acc.push({ name: category, value: expense.amount });
+      }
+      return acc;
+    },
+    []
+  );
 
-  const currencySymbol = formatCurrencySimple(0, defaultCurrency).replace(/[\d.,]/g, '').trim();
+  const currencySymbol = formatCurrencySimple(0, defaultCurrency)
+    .replace(/[\d.,]/g, "")
+    .trim();
 
   return (
     <div className="space-y-4 max-w-full overflow-hidden">
@@ -384,7 +389,9 @@ export function AnalyticsPage() {
                   <LineChart data={monthlyTrendsData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
-                    <YAxis tickFormatter={(value) => `${currencySymbol}${value}`} />
+                    <YAxis
+                      tickFormatter={(value) => `${currencySymbol}${value}`}
+                    />
                     <Tooltip
                       formatter={(value: number) => [
                         formatCurrencySimple(value, defaultCurrency),
@@ -417,7 +424,9 @@ export function AnalyticsPage() {
                   <BarChart data={groupSpending}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
-                    <YAxis tickFormatter={(value) => `${currencySymbol}${value}`} />
+                    <YAxis
+                      tickFormatter={(value) => `${currencySymbol}${value}`}
+                    />
                     <Tooltip
                       formatter={(value: number) => [
                         formatCurrencySimple(value, defaultCurrency),
@@ -456,7 +465,10 @@ export function AnalyticsPage() {
                       cy="50%"
                       outerRadius={80}
                       label={(entry) =>
-                        `${entry.name}: ${formatCurrencySimple(entry.value, defaultCurrency)}`
+                        `${entry.name}: ${formatCurrencySimple(
+                          entry.value,
+                          defaultCurrency
+                        )}`
                       }
                     >
                       {categoryData.map((_: unknown, index: number) => (
@@ -467,7 +479,9 @@ export function AnalyticsPage() {
                       ))}
                     </Pie>
                     <Tooltip
-                      formatter={(value: number) => formatCurrencySimple(value, defaultCurrency)}
+                      formatter={(value: number) =>
+                        formatCurrencySimple(value, defaultCurrency)
+                      }
                     />
                     <Legend />
                   </PieChart>

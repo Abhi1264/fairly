@@ -124,7 +124,11 @@ export async function formatCurrencyToPreferred(
   locale: string = "en-US"
 ): Promise<string> {
   // Convert amount to preferred currency
-  const convertedAmount = await convertCurrency(amount, fromCurrency, toCurrency);
+  const convertedAmount = await convertCurrency(
+    amount,
+    fromCurrency,
+    toCurrency
+  );
 
   // Format using Intl API with preferred currency
   return new Intl.NumberFormat(locale, {

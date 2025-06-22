@@ -6,7 +6,6 @@ import { calculateSplitAmounts } from "../../../../lib/groupUtils";
 import { formatCurrencySimple } from "../../../../lib/currencyUtils";
 import { useSelector } from "react-redux";
 import { selectDefaultCurrency } from "../../../../lib/appSlice";
-import type { RootState } from "../../../../lib/store";
 
 // Props interface for the BalancesTab component
 interface BalancesTabProps {
@@ -52,7 +51,8 @@ export function BalancesTab({
       <CardContent>
         <div className="space-y-2">
           {members.map((memberId) => {
-            const balance = balances.find((b) => b.memberId === memberId)?.balance || 0;
+            const balance =
+              balances.find((b) => b.memberId === memberId)?.balance || 0;
 
             return (
               <div

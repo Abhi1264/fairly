@@ -70,12 +70,14 @@ class OfflineStorage {
 
     try {
       const data = localStorage.getItem(STORAGE_KEYS.OFFLINE_DATA);
-      return data ? JSON.parse(data) : {
-        groups: {},
-        expenses: {},
-        users: {},
-        lastSync: 0,
-      };
+      return data
+        ? JSON.parse(data)
+        : {
+            groups: {},
+            expenses: {},
+            users: {},
+            lastSync: 0,
+          };
     } catch {
       return {
         groups: {},
@@ -95,7 +97,10 @@ class OfflineStorage {
     try {
       const currentData = this.getOfflineData();
       const updatedData = { ...currentData, ...data };
-      localStorage.setItem(STORAGE_KEYS.OFFLINE_DATA, JSON.stringify(updatedData));
+      localStorage.setItem(
+        STORAGE_KEYS.OFFLINE_DATA,
+        JSON.stringify(updatedData)
+      );
     } catch (error) {
       console.error("Failed to save offline data:", error);
     }
@@ -106,7 +111,7 @@ class OfflineStorage {
    */
   cacheDocument(collection: string, id: string, data: any): void {
     const offlineData = this.getOfflineData();
-    
+
     switch (collection) {
       case "groups":
         offlineData.groups[id] = { ...data, id, _cachedAt: Date.now() };
@@ -115,9 +120,14 @@ class OfflineStorage {
         if (!offlineData.expenses[id]) {
           offlineData.expenses[id] = [];
         }
-        const existingIndex = offlineData.expenses[id].findIndex((exp: any) => exp.id === data.id);
+        const existingIndex = offlineData.expenses[id].findIndex(
+          (exp: any) => exp.id === data.id
+        );
         if (existingIndex >= 0) {
-          offlineData.expenses[id][existingIndex] = { ...data, _cachedAt: Date.now() };
+          offlineData.expenses[id][existingIndex] = {
+            ...data,
+            _cachedAt: Date.now(),
+          };
         } else {
           offlineData.expenses[id].push({ ...data, _cachedAt: Date.now() });
         }
@@ -135,7 +145,7 @@ class OfflineStorage {
    */
   getCachedDocument(collection: string, id: string): any | null {
     const offlineData = this.getOfflineData();
-    
+
     switch (collection) {
       case "groups":
         return offlineData.groups[id] || null;
@@ -153,7 +163,7 @@ class OfflineStorage {
    */
   removeCachedDocument(collection: string, id: string): void {
     const offlineData = this.getOfflineData();
-    
+
     switch (collection) {
       case "groups":
         delete offlineData.groups[id];
@@ -186,7 +196,9 @@ class OfflineStorage {
   /**
    * Add operation to queue
    */
-  addToQueue(operation: Omit<OfflineOperation, "id" | "timestamp" | "retryCount">): void {
+  addToQueue(
+    operation: Omit<OfflineOperation, "id" | "timestamp" | "retryCount">
+  ): void {
     if (!this.isStorageAvailable()) return;
 
     try {
@@ -197,7 +209,7 @@ class OfflineStorage {
         timestamp: Date.now(),
         retryCount: 0,
       };
-      
+
       queue.push(newOperation);
       localStorage.setItem(STORAGE_KEYS.OPERATION_QUEUE, JSON.stringify(queue));
     } catch (error) {
@@ -213,8 +225,11 @@ class OfflineStorage {
 
     try {
       const queue = this.getOperationQueue();
-      const filteredQueue = queue.filter(op => op.id !== operationId);
-      localStorage.setItem(STORAGE_KEYS.OPERATION_QUEUE, JSON.stringify(filteredQueue));
+      const filteredQueue = queue.filter((op) => op.id !== operationId);
+      localStorage.setItem(
+        STORAGE_KEYS.OPERATION_QUEUE,
+        JSON.stringify(filteredQueue)
+      );
     } catch (error) {
       console.error("Failed to remove operation from queue:", error);
     }
@@ -228,10 +243,13 @@ class OfflineStorage {
 
     try {
       const queue = this.getOperationQueue();
-      const updatedQueue = queue.map(op => 
+      const updatedQueue = queue.map((op) =>
         op.id === operationId ? { ...op, retryCount } : op
       );
-      localStorage.setItem(STORAGE_KEYS.OPERATION_QUEUE, JSON.stringify(updatedQueue));
+      localStorage.setItem(
+        STORAGE_KEYS.OPERATION_QUEUE,
+        JSON.stringify(updatedQueue)
+      );
     } catch (error) {
       console.error("Failed to update operation retry count:", error);
     }
@@ -257,10 +275,13 @@ class OfflineStorage {
     if (!this.isStorageAvailable()) return;
 
     try {
-      localStorage.setItem(STORAGE_KEYS.NETWORK_STATUS, JSON.stringify({
-        isOnline,
-        timestamp: Date.now(),
-      }));
+      localStorage.setItem(
+        STORAGE_KEYS.NETWORK_STATUS,
+        JSON.stringify({
+          isOnline,
+          timestamp: Date.now(),
+        })
+      );
     } catch (error) {
       console.error("Failed to set network status:", error);
     }
@@ -314,7 +335,7 @@ class OfflineStorage {
     if (!this.isStorageAvailable()) return;
 
     try {
-      Object.values(STORAGE_KEYS).forEach(key => {
+      Object.values(STORAGE_KEYS).forEach((key) => {
         localStorage.removeItem(key);
       });
     } catch (error) {
@@ -332,7 +353,7 @@ class OfflineStorage {
 
     try {
       let used = 0;
-      Object.values(STORAGE_KEYS).forEach(key => {
+      Object.values(STORAGE_KEYS).forEach((key) => {
         const item = localStorage.getItem(key);
         if (item) {
           used += new Blob([item]).size;
@@ -350,4 +371,4 @@ class OfflineStorage {
   }
 }
 
-export const offlineStorage = OfflineStorage.getInstance(); 
+export const offlineStorage = OfflineStorage.getInstance();

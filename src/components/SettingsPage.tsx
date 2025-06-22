@@ -8,29 +8,26 @@ import {
   SelectValue,
 } from "./ui/select";
 import { Button } from "./ui/button";
-import { Separator } from "./ui/separator";
+import { Separator } from "../components/ui/separator";
 import { Badge } from "./ui/badge";
-import { 
-  selectUserPreferences, 
+import {
   selectDefaultCurrency,
   setDefaultCurrency,
-  clearAllCache 
+  clearAllCache,
 } from "../lib/appSlice";
-import { getCurrencySymbol } from "../lib/currencyUtils";
 import { toast } from "sonner";
-import { 
-  Settings, 
-  DollarSign, 
-  Palette, 
-  Bell, 
-  Shield, 
+import {
+  Settings,
+  DollarSign,
+  Palette,
+  Bell,
+  Shield,
   Database,
-  RefreshCw
+  RefreshCw,
 } from "lucide-react";
 
 export function SettingsPage() {
   const dispatch = useDispatch();
-  const preferences = useSelector(selectUserPreferences);
   const defaultCurrency = useSelector(selectDefaultCurrency);
 
   const handleCurrencyChange = (currency: string) => {
@@ -62,25 +59,21 @@ export function SettingsPage() {
           <div className="space-y-2">
             <label className="text-sm font-medium">Default Currency</label>
             <p className="text-sm text-muted-foreground">
-              Choose your preferred currency for displaying amounts across the app
+              Choose your preferred currency for displaying amounts across the
+              app
             </p>
-            <Select value={defaultCurrency} onValueChange={handleCurrencyChange}>
+            <Select
+              value={defaultCurrency}
+              onValueChange={handleCurrencyChange}
+            >
               <SelectTrigger className="w-[200px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="INR">
-                  INR (₹) - Indian Rupee
-                </SelectItem>
-                <SelectItem value="USD">
-                  USD ($) - US Dollar
-                </SelectItem>
-                <SelectItem value="EUR">
-                  EUR (€) - Euro
-                </SelectItem>
-                <SelectItem value="GBP">
-                  GBP (£) - British Pound
-                </SelectItem>
+                <SelectItem value="INR">INR (₹) - Indian Rupee</SelectItem>
+                <SelectItem value="USD">USD ($) - US Dollar</SelectItem>
+                <SelectItem value="EUR">EUR (€) - Euro</SelectItem>
+                <SelectItem value="GBP">GBP (£) - British Pound</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -101,8 +94,8 @@ export function SettingsPage() {
             <p className="text-sm text-muted-foreground">
               Clear cached data to free up storage space and refresh data
             </p>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={handleClearCache}
               className="flex items-center gap-2"
             >
@@ -127,9 +120,9 @@ export function SettingsPage() {
               </div>
               <Badge variant="secondary">Coming Soon</Badge>
             </div>
-            
+
             <Separator />
-            
+
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Bell className="h-5 w-5 text-muted-foreground" />
@@ -137,9 +130,9 @@ export function SettingsPage() {
               </div>
               <Badge variant="secondary">Coming Soon</Badge>
             </div>
-            
+
             <Separator />
-            
+
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Shield className="h-5 w-5 text-muted-foreground" />
@@ -152,4 +145,4 @@ export function SettingsPage() {
       </Card>
     </div>
   );
-} 
+}
