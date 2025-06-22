@@ -6,6 +6,7 @@ import type { RootState } from "../lib/store";
 import { ArrowRightIcon } from "lucide-react";
 import { Logo } from "./Logo";
 import { motion } from "framer-motion";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function LandingHeader() {
   const user = useSelector((state: RootState) => state.app.user);
@@ -26,6 +27,7 @@ export function LandingHeader() {
           animate={{ opacity: 1, x: 0 }}
           className="flex items-center gap-4"
         >
+          <ThemeToggle />
           {user ? (
             <Button
               asChild
